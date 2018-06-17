@@ -1,7 +1,8 @@
 #include "ConnectEsp.h"
 
 
-ConnectEsp::ConnectEsp(char ssid[], char password[], int port, byte adress[]) {
+ConnectEsp::ConnectEsp(char ssid[], char password[], int port, char host[])
+{
   // Constructor ó que se lle pasa:
   // - ssid = nome da rede do AP
   // - password = contrasinal da rede do AP
@@ -11,12 +12,13 @@ ConnectEsp::ConnectEsp(char ssid[], char password[], int port, byte adress[]) {
   _ssid = ssid;
   _pass = password;
   _port = port;
-  _adress = IPAddress(adress);
+  _host = host;
   // Garda no obxecto estos parametros
 }
 
 
-bool ConnectEsp::connectAP() {
+void ConnectEsp::connectAP()
+{
   // En el setup() del sketch hay que llamar a este método para conectarse a la red
   // initialize serial for debugging
   Serial.begin(115200);
@@ -26,34 +28,50 @@ bool ConnectEsp::connectAP() {
 
     WiFi.init(&Serial1);
 
-    if (WiFi.status() == WL_NO_SHIELD) {
+    if (WiFi.status() == WL_NO_SHIELD)
+    {
       Serial.println("WiFi shield not present");
       // don't continue
       while (true);
     }
 
-    while (status != WL_CONNECTED){
+    while (status != WL_CONNECTED)
+    {
       Serial.print("Conectandose a rede: ");
       Serial.println(_ssid);
       status = WiFi.begin(_ssid,_pass);
     }
 
     Serial.println("Estás conectado á rede");
-
-    return true;
 }
 
-bool ConnectEsp::connectServer() {
-    //En el setup() del sketch hay que llamar a este método para conectarse al servidor
-    while (!_client.connect(_adress, 80)) {
-      Serial.println("Non se pode conectar o servidor http");
-    }
-    Serial.println("Conectado o servidor");
+void ConnectEsp::httpRequest(char message[])
+{
+  // close any connection before send a new request
+  // this will free the socket on the WiFi shield
+  _client.stop();
 
-    return true;
+  // if there's a successful connection
+  if (_client.connect(_host, _port)) {
+    Serial.println("Conectando co host...");
 
+    // send the HTTP PUT request
+    _client.println(message);
+    _client.println(F("Host: 127.0.0.1"));
+    _client.println("Connection: close");
+    _client.println();
+  }
+  else
+  {
+    // if you couldn't make a connection
+    Serial.println("Connection failed");
+  }
 }
 
-bool ConnectEsp::sendMessage(char message[]) {
-  return true;
+void ConnectEsp::readServer()
+{
+  while (_client.available()) {
+    char c = _client.read();
+    Serial.write(c);
+  }
 }
