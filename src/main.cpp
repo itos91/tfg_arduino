@@ -1,14 +1,25 @@
 #include <Arduino.h>
 #include "Consola.h"
 #include <ConnectEsp.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+
+#define SALCEDA
 
 //variables estáticas tipo String para a conexión AP
-static char ssid[] = "Quesada";
-static char pass[] = "987ingenieros";
+#if CARBA
+  static char ssid[] = "Quesada";
+  static char pass[] = "987ingenieros";
+#endif
+
+#if defined(SALCEDA)
+  static char ssid[] = "HUAWEI-Cw4a";
+  static char pass[] = "9RR3VAxS";
+#endif
 
 //variable estática tipo String do host do servidor
-static char host[]= "127.0.0.1";
-static int port = 80;
+static char host[]= "192.168.100.3";
+static int port = 8000;
 
 //variable tipo boolean que indica se o operario está facendo un encargo
 bool encargoCompletado = false;
@@ -43,7 +54,7 @@ void loop() {
       // if 10 seconds have passed since your last connection,
       // then connect again and send data
       if (millis() - lastConnectionTime > postingInterval) {
-        ap.httpRequest("GET /encargos HTTP/1.1");
+        ap.httpRequest("GET /encargos/1 HTTP/1.1");
         // note the time that the connection was made
         lastConnectionTime = millis();
       }

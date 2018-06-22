@@ -57,7 +57,7 @@ void ConnectEsp::httpRequest(char message[])
 
     // send the HTTP PUT request
     _client.println(message);
-    _client.println(F("Host: 127.0.0.1"));
+    _client.println(F("Host: 192.168.100.3"));
     _client.println("Connection: close");
     _client.println();
   }
