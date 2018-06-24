@@ -50,6 +50,7 @@ void ConnectEsp::httpRequest(char message[])
   // close any connection before send a new request
   // this will free the socket on the WiFi shield
   _client.stop();
+  _client.flush();
 
   // if there's a successful connection
   if (_client.connect(_host, _port)) {
@@ -57,7 +58,8 @@ void ConnectEsp::httpRequest(char message[])
 
     // send the HTTP PUT request
     _client.println(message);
-    _client.println(F("Host: 192.168.100.3"));
+    _client.print("Host: ");
+    _client.println(_host);
     _client.println("Connection: close");
     _client.println();
   }
@@ -68,10 +70,98 @@ void ConnectEsp::httpRequest(char message[])
   }
 }
 
-void ConnectEsp::readServer()
+
+bool ConnectEsp::get_Encargo_Completado_django()
 {
-  while (_client.available()) {
-    char c = _client.read();
-    Serial.write(c);
+
+  while(!_client.available());
+  String jsonString;
+  while (_client.available())
+  {
+    jsonString = _client.readStringUntil('\r');
   }
+  Serial.println(jsonString);
+  DynamicJsonBuffer jsonBuffer;
+
+  JsonObject& root = jsonBuffer.parseObject(jsonString);
+  if (!root.success()) {
+    Serial.println("parseObject() failed");
+    //return;
+  }
+  int count = root["count"];
+  JsonArray& results = root["results"];
+
+  for (int i = 0; i < count; i++)
+  {
+    JsonObject& results_aux = results[i];
+    bool completado = results_aux["completado"];
+    if(!completado)
+    {
+      pk_encargo = results_aux["pk"];
+      return true;
+    }
+    return false;
+  }
+}
+
+int ConnectEsp::get_producto_Encargo_django()
+{
+
+  while(!_client.available());
+  String jsonString;
+  while (_client.available())
+  {
+    jsonString = _client.readStringUntil('\r');
+  }
+  Serial.println(jsonString);
+  DynamicJsonBuffer jsonBuffer;
+
+  JsonObject& root = jsonBuffer.parseObject(jsonString);
+  if (!root.success()) {
+    Serial.println("parseObject() failed");
+    //return;
+  }
+  int count = root["count"];
+
+  JsonArray& results = root["results"];
+
+  int count_productos_encargo = 0;
+
+  for (int i = 0; i < count; i++)
+  {
+    JsonObject& results_aux = results[i];
+    int pk_encargo_aux = results_aux["encargo"];
+
+    if(pk_encargo_aux = pk_encargo)
+    {
+      pk_producto[count_productos_encargo] = results_aux["producto"];
+      cantidade_producto[count_productos_encargo] = results_aux["cantidade"];
+      count_productos_encargo++;
+    }
+  }
+  return count_productos_encargo;
+}
+
+void ConnectEsp::get_Localizacion_django(int num_producto)
+{
+
+  while(!_client.available());
+  String jsonString;
+  while (_client.available())
+  {
+    jsonString = _client.readStringUntil('\r');
+  }
+  Serial.println(jsonString);
+  DynamicJsonBuffer jsonBuffer;
+
+  JsonObject& root = jsonBuffer.parseObject(jsonString);
+  if (!root.success()) {
+    Serial.println("parseObject() failed");
+    //return;
+  }
+  char * aux;
+  aux = root["localizacion"];
+  localizacion_producto[num_producto]= aux;
+  aux = root["name"];
+  name_producto[num_producto] = aux;
 }

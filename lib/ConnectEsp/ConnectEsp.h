@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <Ethernet.h>
 #include <WiFiEsp.h>
+#include <ArduinoJson.h>
 // Para utilizar clases de comunicación serie
 
 
@@ -22,6 +23,11 @@ private:
 	    //Porto e ip do servidor ó que te conectas
 
 	    int status = WL_IDLE_STATUS;
+			int pk_encargo;
+			int * pk_producto;
+			int * cantidade_producto;
+			String * name_producto;
+			String *localizacion_producto;
 
 public:
 
@@ -39,7 +45,20 @@ public:
 	    void httpRequest(char message[]);
 	    // Hay que llamar a este método en la función setup() para conectarse al servidor
 	    // Devolve True si se conectou servidor con éxito
-			void readServer();
+			bool get_Encargo_Completado_django();
+			// Función que fai un GET a tabla Encargo e devolve se hai encargos
+
+			int get_producto_Encargo_django();
+			//funcion que fai un GET a tabla Detalle_Encargo e devolve o numero de productos para o encargo
+
+			void get_Localizacion_django(int num_producto);
+
+			//getters de variables privadas
+			inline int get_pk_Producto(int index){return pk_producto[index];}
+			inline String get_localizacion_producto(int index){return localizacion_producto[index];}
+			inline String get_name_Producto(int index){return name_producto[index];}
+			inline int get_cantidade_Producto(int index){return cantidade_producto[index];}
+			inline int get_pk_Encargo(){return pk_encargo;}
 };
 
 
