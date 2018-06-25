@@ -80,7 +80,6 @@ bool ConnectEsp::get_Encargo_Completado_django()
   {
     jsonString = _client.readStringUntil('\r');
   }
-  Serial.println(jsonString);
   DynamicJsonBuffer jsonBuffer;
 
   JsonObject& root = jsonBuffer.parseObject(jsonString);
@@ -106,7 +105,7 @@ bool ConnectEsp::get_Encargo_Completado_django()
 
 int ConnectEsp::get_producto_Encargo_django()
 {
-
+  int count_productos_encargo = 0;
   while(!_client.available());
   String jsonString;
   while (_client.available())
@@ -114,7 +113,7 @@ int ConnectEsp::get_producto_Encargo_django()
     jsonString = _client.readStringUntil('\r');
   }
   Serial.println(jsonString);
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<700> jsonBuffer;
 
   JsonObject& root = jsonBuffer.parseObject(jsonString);
   if (!root.success()) {
@@ -125,17 +124,16 @@ int ConnectEsp::get_producto_Encargo_django()
 
   JsonArray& results = root["results"];
 
-  int count_productos_encargo = 0;
-
   for (int i = 0; i < count; i++)
   {
     JsonObject& results_aux = results[i];
     int pk_encargo_aux = results_aux["encargo"];
 
-    if(pk_encargo_aux = pk_encargo)
+    if(pk_encargo_aux == pk_encargo)
     {
       pk_producto[count_productos_encargo] = results_aux["producto"];
-      cantidade_producto[count_productos_encargo] = results_aux["cantidade"];
+      cantidade_producto[count_productos_encargo] = results_aux["cantidade"];;
+
       count_productos_encargo++;
     }
   }
@@ -159,9 +157,29 @@ void ConnectEsp::get_Localizacion_django(int num_producto)
     Serial.println("parseObject() failed");
     //return;
   }
-  char * aux;
-  aux = root["localizacion"];
-  localizacion_producto[num_producto]= aux;
-  aux = root["name"];
-  name_producto[num_producto] = aux;
+
+  localizacion_producto[num_producto] = root["localizacion"];
+  name_producto[num_producto] = root["name"];
+}
+
+void ConnectEsp::post_encargo_completado(/* arguments */)
+{
+
+  String content = "{\"completado\":true}";
+
+  if (_client.connect(_host, _port))
+  {
+    //char put_buffer[30];
+    //sprintf(put_buffer,"PUT /encargos/%d/ HTTP/1.0",pk_encargo);
+    _client.print("PUT /encargos/");
+    _client.print(pk_encargo);
+    _client.println("/ HTTP/1.0");
+    _client.print("Host: ");
+    _client.println(_host);
+    _client.println("Accept: */*");
+    _client.println("Content-Length: " + content.length());
+    _client.println("Content-Type: application/x-www-form-urlencoded");
+    _client.println();
+    _client.println(content);
+  }
 }

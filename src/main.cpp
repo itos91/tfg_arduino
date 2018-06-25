@@ -3,7 +3,7 @@
 #include <ConnectEsp.h>
 #include <string.h>
 
-#define CARBA2
+#define SALCEDA
 
 //variables estáticas tipo String para a conexión AP
 #if defined(CARBA)
@@ -24,9 +24,6 @@
 //variable estática tipo String do host do servidor
 static char host[]= "192.168.1.116";
 static int port = 8000;
-
-//variable tipo boolean que indica se o operario está facendo un encargo
-bool encargoCompletado = false;
 
 //declaramos constructor da clase ConnectEsp
 ConnectEsp ap (ssid, pass, port, host);
@@ -53,57 +50,65 @@ void setup()
 void loop()
 {
     // put your main code here, to run repeatedly:
-    while(!encargoCompletado)
+    ap.httpRequest("GET /encargos/ HTTP/1.0");
+
+    if (ap.get_Encargo_Completado_django())
     {
-      ap.httpRequest("GET /encargos/ HTTP/1.0");
+      consola.visualizaCadena(-1, 0, "Encargo con id: ");
+      consola.visualizaEntero(0, 18, ap.get_pk_Encargo());
+      consola.visualizaCadena(4,1,"Pulsa ENT para continuar");
 
-      if (ap.get_Encargo_Completado_django())
+      while(consola.introduceCaracter() != 'e');
+      consola.borraPantalla();
+
+      ap.httpRequest("GET /detalle_encargo/ HTTP/1.0");
+      int n_p = 0;
+
+      n_p = ap.get_producto_Encargo_django();
+      Serial.println(n_p);
+
+      if (n_p > 0)
       {
-        consola.visualizaCadena(-1, 0, "Encargo con id: ");
-        consola.visualizaEntero(0, 18, ap.get_pk_Encargo());
-        consola.visualizaCadena(4,1,"Pulsa ENT para continuar");
-
-        while(consola.introduceCaracter() != 'e');
-        consola.borraPantalla();
-
-        char to_send[100];
-        sprintf(to_send,"GET /encargos/%d/ HTTP/1.0",ap.get_pk_Encargo());
-
-        ap.httpRequest(to_send);
-
-        if (int count_p = ap.get_producto_Encargo_django() > 0)
+        for (int i = 0; i < n_p; i++)
         {
-          for (int i = 0; i < count_p; i++) {
-            sprintf(to_send,"GET /productos/%d/ HTTP/1.0",ap.get_pk_Producto(i));
-            ap.httpRequest(to_send);
-            ap.get_Localizacion_django(i);
+          char to_send[30];
+          sprintf(to_send,"GET /productos/%d/ HTTP/1.0",ap.get_pk_Producto(i));
+          ap.httpRequest(to_send);
+          //ap.get_Localizacion_django(i);
 
-            consola.visualizaCadena(-1, 0, "Producto: ");
-            consola.visualizaCadena(-1, 10, ap.get_name_Producto(i));
-            consola.visualizaCadena(1, 0, "Cantidade: ");
-            consola.visualizaCadena(1, 10, ap.get_name_Producto(i));
-            consola.visualizaCadena(2, 0, "Localizacion: ");
-            consola.visualizaCadena(2, 10, ap.get_localizacion_producto(i));
-            consola.visualizaCadena(4,0,"Pulsa ENT cando acabes");
-
-            while(consola.introduceCaracter() != 'e');
-            consola.borraPantalla();
-          }
-          //post_encargo_completado
-          consola.visualizaCadena(-1, 0, "Encargo completado");
-          consola.visualizaCadena(4,1,"Pulsa ENT para ver o seguinte");
+          consola.visualizaCadena(-1, 0, "Producto: ");
+          consola.visualizaCadena(-1, 10, ap.get_name_Producto(i));
+          consola.visualizaCadena(0, 0, "Cantidade: ");
+          consola.visualizaCadena(0, 10, ap.get_name_Producto(i));
+          consola.visualizaCadena(1, 0, "Localizacion: ");
+          consola.visualizaCadena(1, 10, ap.get_localizacion_producto(i));
+          consola.visualizaCadena(4,0,"Pulsa ENT cando acabes");
 
           while(consola.introduceCaracter() != 'e');
           consola.borraPantalla();
         }
+        ap.post_encargo_completado();
 
-      }
-      else {
-        consola.visualizaCadena(-1, 0, "Non hai encargos");
-        consola.visualizaCadena(4,1,"Pulsa ENT para actualizar");
+        consola.visualizaCadena(-1, 0, "Encargo completado");
+        consola.visualizaCadena(4,0,"Pulsa ENT para ver o seguinte");
 
         while(consola.introduceCaracter() != 'e');
         consola.borraPantalla();
       }
+      else
+      {
+        consola.visualizaCadena(-1, 0, "Non hai productos para este encargo");
+        consola.visualizaCadena(4,1,"Pulsa ENT para ver o seguinte");
+
+        while(consola.introduceCaracter() != 'e');
+        consola.borraPantalla();
+      }
+    }
+    else {
+      consola.visualizaCadena(-1, 0, "Non hai encargos");
+      consola.visualizaCadena(4,1,"Pulsa ENT para actualizar");
+
+      while(consola.introduceCaracter() != 'e');
+      consola.borraPantalla();
     }
 }

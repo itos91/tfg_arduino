@@ -12,16 +12,9 @@ void Consola::configura() {
   teclado.configura();
 }
 
-/*void Consola::visualizaEntero(int fila, int columna, int valor) {
+void Consola::visualizaEntero(int fila, int columna, int valor) {
   pantalla.posiciona(fila, columna);
-  pantalla.escribeCadena(String(valor));
-}*/
-
-void Consola::visualizaEntero(int fila, int columna, unsigned int valor) {
-  pantalla.posiciona(fila, columna);
-  unsigned long aux = valor;
-  //itoa(valor, _cadena, 10);
-  sprintf(_cadena,"%ld",aux);
+  sprintf(_cadena,"%d",valor);
   pantalla.escribeCadena(_cadena);
 }
 
@@ -30,16 +23,6 @@ void Consola::visualizaReal(int fila, int columna, float valor, int nCaracteres,
   dtostrf(valor, nCaracteres, nDecimales, _cadena);
   pantalla.escribeCadena(_cadena);
 }
-
-/*void Consola::visualizaReal(int fila, int columna, float valor, int nDecimales) {
-  pantalla.posiciona(fila, columna);
-  pantalla.escribeCadena(String(valor, nDecimales));
-}*/
-
-/*void Consola::visualizaCadena(int fila, int columna, String cadena) {
-  pantalla.posiciona(fila, columna);
-  pantalla.escribeCadena(cadena);
-}*/
 
 void Consola::visualizaCadena(int fila, int columna, char * cadena) {
   pantalla.posiciona(fila, columna);
@@ -59,35 +42,6 @@ char Consola::introduceCaracter() {
   return caracter;
 }
 
-/*String Consola::introduceCadena(int fila, int columna, String validos, int nCaracteres) {
-  String resultado;
-  int i;
-  char caracter;
-  pantalla.posiciona(fila, columna);
-  for (i = 0; i < nCaracteres; i++)
-      pantalla.escribeCaracter(' ');
-  pantalla.posiciona(fila, columna);
-  pantalla.muestraCursor(true);
-  i = 0;
-  do {
-      caracter = introduceCaracter();
-      if (validos.indexOf(caracter) >= 0 && i < nCaracteres) {
-          resultado += caracter;
-          i++;
-          pantalla.escribeCaracter(caracter);
-      }
-      if (caracter == 'i') {
-          i--;
-          resultado.remove(i);
-          pantalla.posiciona(fila, columna+i);
-          pantalla.escribeCaracter(' ');
-          pantalla.posiciona(fila, columna+i);
-      }
-  } while (caracter != 'e');
-  pantalla.muestraCursor(false);
-
-  return resultado;
-}*/
 
 void Consola::introduceCadena(int fila, int columna, char * validos, int nCaracteres, char * resultado) {
   int i;
@@ -116,20 +70,10 @@ void Consola::introduceCadena(int fila, int columna, char * validos, int nCaract
   resultado[i] = 0;
 }
 
-/*int Consola::introduceEntero(int fila, int columna, int nCaracteres) {
-  String cadena = introduceCadena(fila, columna, "0123456789", nCaracteres);
-  return cadena.toInt();
-}*/
-
 int Consola::introduceEntero(int fila, int columna, int nCaracteres) {
   introduceCadena(fila, columna, "0123456789", nCaracteres, _cadena);
   return atoi(_cadena);
 }
-
-/*float Consola::introduceReal(int fila, int columna, int nCaracteres) {
-  String cadena = introduceCadena(fila, columna, "0123456789.", nCaracteres);
-  return cadena.toFloat();
-}*/
 
 float Consola::introduceReal(int fila, int columna, int nCaracteres) {
   introduceCadena(fila, columna, "0123456789.-", nCaracteres, _cadena);

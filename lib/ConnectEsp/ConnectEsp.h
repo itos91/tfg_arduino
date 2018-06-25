@@ -5,7 +5,7 @@
 #include <Ethernet.h>
 #include <WiFiEsp.h>
 #include <ArduinoJson.h>
-// Para utilizar clases de comunicación serie
+#include <stdio.h>
 
 
 class ConnectEsp
@@ -24,10 +24,11 @@ private:
 
 	    int status = WL_IDLE_STATUS;
 			int pk_encargo;
-			int * pk_producto;
-			int * cantidade_producto;
-			String * name_producto;
-			String *localizacion_producto;
+			int* pk_producto;
+			int* cantidade_producto;
+			char** name_producto;
+			char** localizacion_producto;
+			//variables para almacenar request de Json
 
 public:
 
@@ -52,11 +53,15 @@ public:
 			//funcion que fai un GET a tabla Detalle_Encargo e devolve o numero de productos para o encargo
 
 			void get_Localizacion_django(int num_producto);
+			//función que fai un GET a tabla Producto e lle pasa por parametro o pk do producto
+
+			void post_encargo_completado();
+			//función que fai un PUT e modifica o rexitro "Completado" a True
 
 			//getters de variables privadas
 			inline int get_pk_Producto(int index){return pk_producto[index];}
-			inline String get_localizacion_producto(int index){return localizacion_producto[index];}
-			inline String get_name_Producto(int index){return name_producto[index];}
+			inline char * get_localizacion_producto(int index){return localizacion_producto[index];}
+			inline char * get_name_Producto(int index){return name_producto[index];}
 			inline int get_cantidade_Producto(int index){return cantidade_producto[index];}
 			inline int get_pk_Encargo(){return pk_encargo;}
 };
