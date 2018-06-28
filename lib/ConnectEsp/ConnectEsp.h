@@ -24,10 +24,10 @@ private:
 
 	    int status = WL_IDLE_STATUS;
 			int pk_encargo;
-			int* pk_producto;
-			int* cantidade_producto;
-			char** name_producto;
-			char** localizacion_producto;
+			int pk_producto[6];
+			int cantidade_producto[6];
+			char* name_producto[6];
+			char* localizacion_producto[6];
 			//variables para almacenar request de Json
 
 public:
@@ -59,11 +59,17 @@ public:
 			//función que fai un PUT e modifica o rexitro "Completado" a True
 
 			//getters de variables privadas
-			inline int get_pk_Producto(int index){return pk_producto[index];}
+			inline int get_pk_producto(int index){return pk_producto[index];}
 			inline char * get_localizacion_producto(int index){return localizacion_producto[index];}
-			inline char * get_name_Producto(int index){return name_producto[index];}
-			inline int get_cantidade_Producto(int index){return cantidade_producto[index];}
-			inline int get_pk_Encargo(){return pk_encargo;}
+			inline char * get_name_producto(int index){return name_producto[index];}
+			inline int get_cantidade_producto(int index){return cantidade_producto[index];}
+			inline int get_pk_encargo(){return pk_encargo;}
+			//setters de variables privadas
+			inline void set_pk_producto(int index, int producto){pk_producto[index] = producto;}
+			inline void set_localizacion_producto(int index, char * localizacion){localizacion_producto[index] = localizacion;}
+			inline void set_name_producto(int index, char * name){name_producto[index] = name;}
+			inline int set_cantidade_producto(int index, int cantidade){cantidade_producto[index] = cantidade;}
+			inline int set_pk_encargo(int encargo){pk_encargo = encargo;}
 };
 
 

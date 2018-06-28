@@ -2,6 +2,7 @@
 #include "Consola.h"
 #include <ConnectEsp.h>
 #include <string.h>
+#include <stdio.h>
 
 #define SALCEDA
 
@@ -22,7 +23,7 @@
 #endif
 
 //variable estática tipo String do host do servidor
-static char host[]= "192.168.1.116";
+static char host[]= "192.168.100.4";
 static int port = 8000;
 
 //declaramos constructor da clase ConnectEsp
@@ -55,7 +56,7 @@ void loop()
     if (ap.get_Encargo_Completado_django())
     {
       consola.visualizaCadena(-1, 0, "Encargo con id: ");
-      consola.visualizaEntero(0, 18, ap.get_pk_Encargo());
+      consola.visualizaEntero(-1, 18, ap.get_pk_encargo());
       consola.visualizaCadena(4,1,"Pulsa ENT para continuar");
 
       while(consola.introduceCaracter() != 'e');
@@ -65,23 +66,30 @@ void loop()
       int n_p = 0;
 
       n_p = ap.get_producto_Encargo_django();
+      Serial.print("n_p: ");
       Serial.println(n_p);
 
       if (n_p > 0)
       {
         for (int i = 0; i < n_p; i++)
         {
+          Serial.print("Producto numero: ");
+          Serial.println(ap.get_pk_producto(i));
           char to_send[30];
-          sprintf(to_send,"GET /productos/%d/ HTTP/1.0",ap.get_pk_Producto(i));
+          sprintf(to_send,"GET /productos/%d/ HTTP/1.0",ap.get_pk_producto(i));
           ap.httpRequest(to_send);
-          //ap.get_Localizacion_django(i);
+          ap.get_Localizacion_django(i);
 
-          consola.visualizaCadena(-1, 0, "Producto: ");
-          consola.visualizaCadena(-1, 10, ap.get_name_Producto(i));
-          consola.visualizaCadena(0, 0, "Cantidade: ");
-          consola.visualizaCadena(0, 10, ap.get_name_Producto(i));
-          consola.visualizaCadena(1, 0, "Localizacion: ");
-          consola.visualizaCadena(1, 10, ap.get_localizacion_producto(i));
+          char* nome_terminal = ap.get_name_producto(i);
+          Serial.println(nome_terminal);
+          char* localizacion_terminal = ap.get_localizacion_producto(i);
+
+          consola.visualizaCadena(1, 0, "Producto: ");
+          consola.visualizaCadena(1, 15, nome_terminal);
+          consola.visualizaCadena(2, 0, "Cantidade: ");
+          consola.visualizaEntero(2, 15, ap.get_cantidade_producto(i));
+          consola.visualizaCadena(3, 0, "Localizacion: ");
+          consola.visualizaCadena(3, 15, localizacion_terminal);
           consola.visualizaCadena(4,0,"Pulsa ENT cando acabes");
 
           while(consola.introduceCaracter() != 'e');
@@ -97,6 +105,7 @@ void loop()
       }
       else
       {
+        ap.post_encargo_completado();
         consola.visualizaCadena(-1, 0, "Non hai productos para este encargo");
         consola.visualizaCadena(4,1,"Pulsa ENT para ver o seguinte");
 

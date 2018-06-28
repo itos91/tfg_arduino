@@ -50,7 +50,6 @@ void ConnectEsp::httpRequest(char message[])
   // close any connection before send a new request
   // this will free the socket on the WiFi shield
   _client.stop();
-  _client.flush();
 
   // if there's a successful connection
   if (_client.connect(_host, _port)) {
@@ -80,7 +79,7 @@ bool ConnectEsp::get_Encargo_Completado_django()
   {
     jsonString = _client.readStringUntil('\r');
   }
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<800> jsonBuffer;
 
   JsonObject& root = jsonBuffer.parseObject(jsonString);
   if (!root.success()) {
@@ -96,11 +95,11 @@ bool ConnectEsp::get_Encargo_Completado_django()
     bool completado = results_aux["completado"];
     if(!completado)
     {
-      pk_encargo = results_aux["pk"];
+      set_pk_encargo(results_aux["pk"]);
       return true;
     }
-    return false;
   }
+  return false;
 }
 
 int ConnectEsp::get_producto_Encargo_django()
@@ -112,8 +111,7 @@ int ConnectEsp::get_producto_Encargo_django()
   {
     jsonString = _client.readStringUntil('\r');
   }
-  Serial.println(jsonString);
-  StaticJsonBuffer<700> jsonBuffer;
+  StaticJsonBuffer<1200> jsonBuffer;
 
   JsonObject& root = jsonBuffer.parseObject(jsonString);
   if (!root.success()) {
@@ -131,10 +129,9 @@ int ConnectEsp::get_producto_Encargo_django()
 
     if(pk_encargo_aux == pk_encargo)
     {
-      pk_producto[count_productos_encargo] = results_aux["producto"];
-      cantidade_producto[count_productos_encargo] = results_aux["cantidade"];;
-
       count_productos_encargo++;
+      set_cantidade_producto((count_productos_encargo -1), results_aux["cantidade"]);
+      set_pk_producto((count_productos_encargo - 1), results_aux["producto"]);
     }
   }
   return count_productos_encargo;
@@ -149,36 +146,36 @@ void ConnectEsp::get_Localizacion_django(int num_producto)
   {
     jsonString = _client.readStringUntil('\r');
   }
-  Serial.println(jsonString);
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<300> jsonBuffer;
 
   JsonObject& root = jsonBuffer.parseObject(jsonString);
   if (!root.success()) {
     Serial.println("parseObject() failed");
     //return;
   }
-
-  localizacion_producto[num_producto] = root["localizacion"];
-  name_producto[num_producto] = root["name"];
+  set_localizacion_producto(num_producto, root["localizacion"]);
+  set_name_producto(num_producto, root["name"]);
+  Serial.print("nome do producto: ");
+  Serial.println(get_name_producto(num_producto));
+  Serial.print("localizacion do producto: ");
+  Serial.println(get_localizacion_producto(num_producto));
 }
 
-void ConnectEsp::post_encargo_completado(/* arguments */)
+void ConnectEsp::post_encargo_completado()
 {
-
   String content = "{\"completado\":true}";
-
   if (_client.connect(_host, _port))
   {
     //char put_buffer[30];
     //sprintf(put_buffer,"PUT /encargos/%d/ HTTP/1.0",pk_encargo);
-    _client.print("PUT /encargos/");
+    _client.print("PATCH /encargos/");
     _client.print(pk_encargo);
-    _client.println("/ HTTP/1.0");
+    _client.println("/ HTTP/1.1");
     _client.print("Host: ");
     _client.println(_host);
-    _client.println("Accept: */*");
-    _client.println("Content-Length: " + content.length());
-    _client.println("Content-Type: application/x-www-form-urlencoded");
+    //_client.println("Accept: */*");
+    _client.println("Content-Length: 1052");
+    _client.println("Content-Type: application/json");
     _client.println();
     _client.println(content);
   }
